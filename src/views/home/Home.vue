@@ -3,77 +3,37 @@
     <nav-bar id="home-nav">
       <div slot="center">首页</div>
     </nav-bar>
-    <home-swiper :banners="result.banners"></home-swiper>
-    <recommend-view :recommends="result.recommends"></recommend-view>
-    <feature-view :feature_link="result.feature_link"></feature-view>
-
-    <ul>
-      <li>数据1</li>
-      <li>数据2</li>
-      <li>数据3</li>
-      <li>数据4</li>
-      <li>数据5</li>
-      <li>数据6</li>
-      <li>数据7</li>
-      <li>数据8</li>
-      <li>数据9</li>
-      <li>数据10</li>
-      <li>数据11</li>
-      <li>数据12</li>
-      <li>数据13</li>
-      <li>数据14</li>
-      <li>数据15</li>
-      <li>数据16</li>
-      <li>数据17</li>
-      <li>数据18</li>
-      <li>数据19</li>
-      <li>数据20</li>
-      <li>数据21</li>
-      <li>数据22</li>
-      <li>数据23</li>
-      <li>数据24</li>
-      <li>数据25</li>
-      <li>数据26</li>
-      <li>数据27</li>
-      <li>数据28</li>
-      <li>数据29</li>
-      <li>数据30</li>
-      <li>数据31</li>
-      <li>数据32</li>
-      <li>数据33</li>
-      <li>数据34</li>
-      <li>数据35</li>
-      <li>数据36</li>
-      <li>数据37</li>
-      <li>数据38</li>
-      <li>数据39</li>
-      <li>数据40</li>
-      <li>数据41</li>
-      <li>数据42</li>
-      <li>数据43</li>
-      <li>数据44</li>
-      <li>数据45</li>
-      <li>数据46</li>
-      <li>数据47</li>
-      <li>数据48</li>
-      <li>数据49</li>
-      <li>数据50</li>
-    </ul>
+    <scroll class="content" ref="scroll">
+      <home-swiper :banners="result.banners"></home-swiper>
+      <recommend-view :recommends="result.recommends"></recommend-view>
+      <feature-view :feature_link="result.feature_link"></feature-view>
+      <tab-control class="tab-control" :titles="['流行','新款','精选']"></tab-control>
+      <goods-list-view :goods="result.goods['pop'].list"></goods-list-view>
+    </scroll>
+    <back-top class="back-top" @click.native="backTop"></back-top>
   </div>
 </template>
 
 <script>
   import {getHomeMultidata, getHomeData} from "../../network/home";
-
-
   import NavBar from "components/common/navbar/NavBar";
   import HomeSwiper from "./childComps/HomeSwiper";
   import RecommendView from "./childComps/RecommendView";
   import FeatureView from "./childComps/FeatureView";
+  import TabControl from "components/content/tabControl/TabControl";
+  import Scroll from "components/common/scroll/Scroll";
+  import BackTop from "../../components/content/backTop/BackTop";
+
+  import home_data from "./model/homemodel";
+  import GoodsListView from "../../components/content/goodlist/GoodsListView";
 
   export default {
     name: "Home",
     components: {
+      GoodsListView,
+      BackTop,
+      Scroll,
+      TabControl,
       FeatureView,
       NavBar,
       HomeSwiper,
@@ -81,39 +41,97 @@
     },
     data() {
       return {
-        result: {
-          banners: [],
-          recommends: [],
-          feature_link: 'http://act.mogujie.com/zzlx67',
-        },
+        result: home_data
       }
     },
     created() {
-      getHomeMultidata().then(res => {
-        console.log(res);
-        this.result.banners = res.data.data.banner.list
-        this.result.recommends = res.data.data.recommend.list
-      }).catch(error => {
-        console.log(error);
-      })
+      this.getHomeMultidata()
+      this.getHomeNewsData(1)
+      this.getHomePoPData(1)
+      this.getHomeSellData(1)
+    },
+    methods:{
+      getHomeMultidata(){
+        getHomeMultidata().then(res => {
+          console.log(res);
+          this.result.banners = res.data.data.banner.list
+          this.result.recommends = res.data.data.recommend.list
+        }).catch(error => {
+          console.log(error);
+        })
+      },
+      getHomePoPData(page){
+        getHomeData('pop',page).then(res=>{
+          console.log(res);
+          for (let i=0;i<20;i++){
+            const item={
+              img:'https://s10.mogucdn.com/mlcdn/c45406/180926_45fkj8ifdj4l824l42dgf9hd0h495_750x390.jpg',
+              title:'流行数据',
+              collect:i,
+            }
+            this.result.goods['pop'].list.push(item)
+          }
+        })
+      },
+      getHomeSellData(page){
+        getHomeData('sell',page).then(res=>{
+          console.log(res);
+          for (let i=0;i<20;i++){
+            const item={
+              img:'"https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg"',
+              title:'新款数据'+i,
+              collect:i,
+            }
+            this.result.goods['sell'].list.push(item)
+          }
+        })
+      },
+      getHomeNewsData(page){
+        getHomeData('news',page).then(res=>{
+          console.log(res);
+          for (let i=0;i<20;i++){
+            const item={
+              img:'"https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg"',
+              title:'精选数据'+i,
+              collect:i,
+            }
+            this.result.goods['news'].list.push(item)
+          }
+        })
+      },
+      backTop(){
+        this.$refs.scroll.scrollTo(0,0)
+      }
     }
   }
 </script>
 
 <style scoped>
-  #home{
+  #home {
     padding-top: 44px;
-    z-index: 10;
+    height: 100vh;
+    position: relative;
   }
+
   #home-nav {
     background-color: var(--color-high-text);
     color: var(--color-background);
-    font-weight:700;
-    font-size: 18px;
     position: fixed;
     left: 0;
     right: 0;
     top: 0;
     z-index: 9;
+  }
+  .tab-control {
+    position: sticky;
+    top: 44px;
+  }
+  .content{
+     /*height: calc(100% - 49px);*/
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
   }
 </style>

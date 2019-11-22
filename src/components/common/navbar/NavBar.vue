@@ -25,21 +25,20 @@
     line-height: 44px;
     height: 44px;
     text-align: center;
+    font-weight: 700;
+    font-size: 16px;
   }
 
   .left {
     width: 60px;
-    line-height: 44px;
   }
 
   .center {
     flex: 1;
-    line-height: 44px;
   }
 
   .right {
     width: 60px;
-    line-height: 44px;
   }
 
 </style>
