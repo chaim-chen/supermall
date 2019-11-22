@@ -7,8 +7,8 @@
       <home-swiper :banners="result.banners"></home-swiper>
       <recommend-view :recommends="result.recommends"></recommend-view>
       <feature-view :feature_link="result.feature_link"></feature-view>
-      <tab-control class="tab-control" :titles="['流行','新款','精选']"></tab-control>
-      <goods-list-view :goods="result.goods['pop'].list"></goods-list-view>
+      <tab-control class="tab-control" :titles="['流行','新款','精选']" @itemclick="itemClick"></tab-control>
+      <goods-list-view :goods="result.goods[result.currentType].list"></goods-list-view>
     </scroll>
     <back-top class="back-top" @click.native="backTop"></back-top>
   </div>
@@ -46,8 +46,8 @@
     },
     created() {
       this.getHomeMultidata()
-      this.getHomeNewsData(1)
       this.getHomePoPData(1)
+      this.getHomeNewsData(1)
       this.getHomeSellData(1)
     },
     methods:{
@@ -75,10 +75,9 @@
       },
       getHomeSellData(page){
         getHomeData('sell',page).then(res=>{
-          console.log(res);
           for (let i=0;i<20;i++){
             const item={
-              img:'"https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg"',
+              img:'https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg',
               title:'新款数据'+i,
               collect:i,
             }
@@ -88,10 +87,9 @@
       },
       getHomeNewsData(page){
         getHomeData('news',page).then(res=>{
-          console.log(res);
           for (let i=0;i<20;i++){
             const item={
-              img:'"https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg"',
+              img:'https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg',
               title:'精选数据'+i,
               collect:i,
             }
@@ -101,6 +99,20 @@
       },
       backTop(){
         this.$refs.scroll.scrollTo(0,0)
+      },
+      itemClick(index){
+        switch (index) {
+          case 0:
+            this.result.currentType='pop'
+            break
+          case 1:
+            this.result.currentType='sell'
+            break
+          case 2:
+            this.result.currentType='news'
+            break
+        }
+        console.log(this.result.goods);
       }
     }
   }

@@ -15,6 +15,7 @@ let home_data ={
       page: 0,
       list: []
     }
-  }
+  },
+  currentType:'pop',
 }
 export default home_data
