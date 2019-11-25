@@ -11,9 +11,9 @@
 <script>
   export default {
     name: "TabControl",
-    data(){
+    data() {
       return {
-        currentIndex:0
+        currentIndex: 0
       }
     },
     props: {
@@ -24,10 +24,11 @@
         }
       }
     },
-    methods:{
-      itemClick(index){
-         this.currentIndex=index;
-         this.$emit('itemclick',index)
+    methods: {
+      itemClick(index) {
+        console.log(index);
+        this.currentIndex = index;
+        this.$emit('itemClick', index)
       }
     }
   }
@@ -47,16 +48,17 @@
     color: var(--color-text);
   }
 
-  .tab-control-item span{
-     padding: 5px;
-  }
-  .active {
-     color: var(--color-high-text);
-  }
-  .active span{
-    border-bottom: 3px solid var(--color-high-text);
+  .tab-control-item span {
+    padding: 5px;
   }
 
+  .active {
+    color: var(--color-high-text);
+  }
+
+  .active span {
+    border-bottom: 3px solid var(--color-high-text);
+  }
 
 
 </style>

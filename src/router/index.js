@@ -34,6 +34,6 @@ const router= new Router({
       component:Profile
     }
   ],
-  mode:"history"
+  mode:"history",
 });
 export default router

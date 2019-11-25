@@ -15,20 +15,43 @@
           scroll:null
       }
     },
+
+    props:{
+      pullUpLoad:{
+        type:Boolean,
+        default:false
+      },
+      probeType:{
+         type: Number,
+         default: 0
+      }
+
+    },
     mounted() {
       this.scroll=new BScroll(document.querySelector('.wrapper'),{
-          probeType:2,
-          scroll:true,
+          probeType:3,
+          pullUpLoad:this.pullUpLoad,
           click:true
        })
+      //监听滚动事件
       this.scroll.on('scroll',position=>{
-        console.log(position);
+        this.$emit('scroll',position);
+      })
+      //监听上拉事件
+      this.scroll.on('pullingUp',()=>{
+          this.$emit('pullingUp');
       })
     },
     methods:{
        scrollTo(x,y,time=300){
-          this.scroll.scrollTo(x,y,time);
-       }
+          this.scroll&&this.scroll.scrollTo(x,y,time);
+       },
+      finishPullUp(){
+         this.scroll.finishPullUp()
+      },
+      refresh(){
+        this.scroll&&this.scroll.refresh()
+      }
     }
   }
 </script>

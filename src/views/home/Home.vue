@@ -1,16 +1,15 @@
 <template>
   <div id="home">
-    <nav-bar id="home-nav">
-      <div slot="center">首页</div>
-    </nav-bar>
-    <scroll class="content" ref="scroll">
-      <home-swiper :banners="result.banners"></home-swiper>
-      <recommend-view :recommends="result.recommends"></recommend-view>
-      <feature-view :feature_link="result.feature_link"></feature-view>
-      <tab-control class="tab-control" :titles="['流行','新款','精选']" @itemclick="itemClick"></tab-control>
-      <goods-list-view :goods="result.goods[result.currentType].list"></goods-list-view>
+    <nav-bar id="home-nav"><div slot="center">首页</div></nav-bar>
+    <tab-control ref="tabcontrol1" class="tabControl1" v-show="isShowTabControl" :titles="['流行','新款','精选']" @itemClick="itemClick"></tab-control>
+    <scroll class="content" ref="scroll" :probe-type="3" :pullUpLoad="false" @scroll="onScroll" @pullingUp="onLoadMore">
+      <home-swiper :banners="banners" @imageLoad="onImageLoad"></home-swiper>
+      <recommend-view :recommends="recommends"></recommend-view>
+      <feature-view :feature_link="feature_link"></feature-view>
+      <tab-control ref="tabcontrol2" :titles="['流行','新款','精选']" @itemClick="itemClick"></tab-control>
+      <goods-list-view :goods="goods[currentType].list"></goods-list-view>
     </scroll>
-    <back-top class="back-top" @click.native="backTop"></back-top>
+    <back-top  v-show="isShowBackTop" @click.native="backTop"></back-top>
   </div>
 </template>
 
@@ -23,8 +22,7 @@
   import TabControl from "components/content/tabControl/TabControl";
   import Scroll from "components/common/scroll/Scroll";
   import BackTop from "../../components/content/backTop/BackTop";
-
-  import home_data from "./model/homemodel";
+  import {debounce} from "../../common/utils";
   import GoodsListView from "../../components/content/goodlist/GoodsListView";
 
   export default {
@@ -41,59 +39,91 @@
     },
     data() {
       return {
-        result: home_data
+        banners: [],
+        recommends: [],
+        feature_link: 'http://act.mogujie.com/zzlx67',
+        goods:{
+          pop:{
+            page:0,
+            list:[]
+          },
+          sell:{
+            page: 0,
+            list: []
+          },
+          news:{
+            page: 0,
+            list: []
+          }
+        },
+        currentType:'pop',
+        isShowBackTop:false,
+        isShowTabControl:false,
+        tabOffSetTop:0,
       }
     },
     created() {
+      console.log('created');
       this.getHomeMultidata()
-      this.getHomePoPData(1)
-      this.getHomeNewsData(1)
-      this.getHomeSellData(1)
+      this.getHomeData('pop')
+      this.getHomeData('sell')
+      this.getHomeData('news')
+    },
+    destroyed(){
+      console.log('destroyed');
+    },
+    mounted(){
+      let refresh = debounce(this.$refs.scroll.refresh);
+      //注册事件总线
+      this.$bus.$on('imageLoad',()=>{
+        //better-scroll加载数据高度问题   this.$refs.scroll.refresh()
+        //刷新事件过于频繁
+        refresh()
+      })
     },
     methods:{
       getHomeMultidata(){
         getHomeMultidata().then(res => {
           console.log(res);
-          this.result.banners = res.data.data.banner.list
-          this.result.recommends = res.data.data.recommend.list
+          this.banners = res.data.data.banner.list
+          this.recommends = res.data.data.recommend.list
         }).catch(error => {
           console.log(error);
         })
       },
-      getHomePoPData(page){
-        getHomeData('pop',page).then(res=>{
-          console.log(res);
-          for (let i=0;i<20;i++){
-            const item={
-              img:'https://s10.mogucdn.com/mlcdn/c45406/180926_45fkj8ifdj4l824l42dgf9hd0h495_750x390.jpg',
-              title:'流行数据',
-              collect:i,
+      getHomeData(type){
+        getHomeData(type).then(res=>{
+          const  page =this.goods[type].page+1;
+          for (let i=0;i<30;i++){
+            let item=null;
+            switch (type) {
+              case 'pop':
+                 item={
+                  img:'https://s10.mogucdn.com/mlcdn/c45406/180926_45fkj8ifdj4l824l42dgf9hd0h495_750x390.jpg',
+                  title:'流行数据',
+                  zan:2*i*page,
+                  collect:i*page,
+                }
+                break
+              case 'sell':
+                 item={
+                  img:'https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg',
+                  title:'新款数据'+i,
+                  zan:i*100,
+                  collect:i,
+                }
+                break
+              case 'news':
+                 item={
+                  img:'https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg',
+                  title:'精选数据'+i,
+                  zan:i*100,
+                  collect:i+100,
+                }
+                break;
             }
-            this.result.goods['pop'].list.push(item)
-          }
-        })
-      },
-      getHomeSellData(page){
-        getHomeData('sell',page).then(res=>{
-          for (let i=0;i<20;i++){
-            const item={
-              img:'https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg',
-              title:'新款数据'+i,
-              collect:i,
-            }
-            this.result.goods['sell'].list.push(item)
-          }
-        })
-      },
-      getHomeNewsData(page){
-        getHomeData('news',page).then(res=>{
-          for (let i=0;i<20;i++){
-            const item={
-              img:'https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg',
-              title:'精选数据'+i,
-              collect:i,
-            }
-            this.result.goods['news'].list.push(item)
+            this.goods[type].list.push(item)
+            this.goods[type].page=page
           }
         })
       },
@@ -103,16 +133,30 @@
       itemClick(index){
         switch (index) {
           case 0:
-            this.result.currentType='pop'
+            this.currentType='pop'
             break
           case 1:
-            this.result.currentType='sell'
+            this.currentType='sell'
             break
           case 2:
-            this.result.currentType='news'
+            this.currentType='news'
             break
         }
-        console.log(this.result.goods);
+        this.$refs.tabcontrol1.currentIndex=index;
+        this.$refs.tabcontrol2.currentIndex=index;
+      },
+      onScroll(position){
+        this.isShowBackTop=(-position.y)>1000
+        this.isShowTabControl=(-position.y)>this.tabOffSetTop
+      },
+      onLoadMore(){
+        this.getHomeData(this.currentType)
+        this.$refs.scroll.finishPullUp()
+      },
+      //获取tab-control距离顶部的距离
+      onImageLoad(){
+        console.log(this.$refs.tabcontrol2.$el.offsetTop);
+        this.tabOffSetTop=this.$refs.tabcontrol2.$el.offsetTop;
       }
     }
   }
@@ -120,24 +164,41 @@
 
 <style scoped>
   #home {
-    padding-top: 44px;
+    /*padding-top: 44px;*/
     height: 100vh;
     position: relative;
+    overflow-y: hidden;
   }
 
   #home-nav {
     background-color: var(--color-high-text);
     color: var(--color-background);
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
+    /*在使用原生滚动的时候使用*/
+    position: relative;
+    /*left: 0;*/
+    /*right: 0;*/
+    /*top: 0;*/
     z-index: 9;
   }
-  .tab-control {
-    position: sticky;
+  .tabControl {
+    /*原生的吸顶效果*/
+    /*position: sticky;*/
+    /*top: 44px;*/
+    /*z-index: 9;*/
+
+    /*better-scroll下的处理 无效*/
+    position: fixed;
     top: 44px;
+    left: 0;
+    right: 0;
+    z-index: 9;
   }
+
+  .tabControl1{
+     position: relative;
+     z-index: 9;
+  }
+
   .content{
      /*height: calc(100% - 49px);*/
     position: absolute;
